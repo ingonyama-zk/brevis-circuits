@@ -71,16 +71,19 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
+   	github.com/ingonyama-zk/icicle/goicicle v0.0.0 //indirect
+
 )
 
 replace (
 	github.com/binance-chain/go-sdk => github.com/binance-chain/go-sdk v1.2.2-0.20200520064040-fc067ad70353
 	github.com/bnb-chain/bsc-relayer => github.com/celer-network/bsc-relayer v0.0.0-20230220102218-3f971e7d50f4
-	github.com/consensys/gnark => github.com/celer-network/gnark v0.0.0-20230423085507-24d7a345250d
+	github.com/consensys/gnark => ../celer-gnark
+    github.com/ingonyama-zk/icicle/goicicle => ../icicle/goicicle
 	github.com/consensys/gnark-crypto => github.com/celer-network/gnark-crypto v0.0.0-20230423085214-c00cabca6125
 	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/bnc-cosmos-sdk v0.25.4-0.20221221115251-f9e69ff1b273
 	github.com/ethereum/go-ethereum v1.11.2 => github.com/ethereum/go-ethereum v1.10.18
-	github.com/liyue201/gnark-circomlib => github.com/celer-network/gnark-circomlib v0.0.0-20230315074501-e0c2cea42b8b
+	github.com/liyue201/gnark-circomlib => ../gnark-circomlib
 	github.com/tendermint/go-amino => github.com/tendermint/go-amino v0.14.1
 	github.com/tendermint/iavl => github.com/bnb-chain/bnc-tendermint-iavl v0.12.0-binance.4
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.32.3
