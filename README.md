@@ -22,3 +22,7 @@ In addition to the standard gadgets provided by `gnark`, a powerful zk-SNARK dev
 * `ed25519` over any finite field
 * `sha256`
 * `sha512`
+
+## Run using Icicle GPU acceleration
+
+Run bls-sig circuit using Ingonyama's accelerated GPU library Icicle by running the script [`setup_icicle.sh`](fabric/bls-sig/setup_icicle.sh)

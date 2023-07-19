@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/celer-network/goutils v0.1.60
 	github.com/consensys/gnark v0.0.0-20230315015730-8699eba5710d
-	github.com/consensys/gnark-crypto v0.10.1-0.20230420183752-ed3709c81831
+	github.com/consensys/gnark-crypto v0.11.0
 	github.com/ethereum/go-ethereum v1.11.5
 	github.com/iden3/go-iden3-crypto v0.0.15
 	github.com/liyue201/gnark-circomlib v0.0.0-20221229085226-4cffd763e7ce
@@ -41,6 +41,7 @@ require (
 	github.com/google/pprof v0.0.0-20230309165930-d61513b1440d // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/holiman/uint256 v1.2.2-0.20230321075855-87b91420868c // indirect
+	github.com/ingonyama-zk/icicle v0.0.0 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -59,7 +60,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
-	github.com/stretchr/testify v1.8.2 // indirect
+	github.com/stretchr/testify v1.8.3 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
@@ -76,11 +77,12 @@ require (
 replace (
 	github.com/binance-chain/go-sdk => github.com/binance-chain/go-sdk v1.2.2-0.20200520064040-fc067ad70353
 	github.com/bnb-chain/bsc-relayer => github.com/celer-network/bsc-relayer v0.0.0-20230220102218-3f971e7d50f4
-	github.com/consensys/gnark => github.com/celer-network/gnark v0.0.0-20230423085507-24d7a345250d
+	github.com/consensys/gnark => github.com/ingonyama-zk/celer-gnark v0.0.0-20230719185033-49f6942d2236
 	github.com/consensys/gnark-crypto => github.com/celer-network/gnark-crypto v0.0.0-20230423085214-c00cabca6125
 	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/bnc-cosmos-sdk v0.25.4-0.20221221115251-f9e69ff1b273
 	github.com/ethereum/go-ethereum v1.11.2 => github.com/ethereum/go-ethereum v1.10.18
-	github.com/liyue201/gnark-circomlib => github.com/celer-network/gnark-circomlib v0.0.0-20230315074501-e0c2cea42b8b
+	github.com/ingonyama-zk/icicle => github.com/ingonyama-zk/icicle v0.0.0-20230719184412-d13143506ece
+	github.com/liyue201/gnark-circomlib => github.com/ingonyama-zk/celer-gnark-circomlib v0.0.0-20230719192407-bd9cd118fadb
 	github.com/tendermint/go-amino => github.com/tendermint/go-amino v0.14.1
 	github.com/tendermint/iavl => github.com/bnb-chain/bnc-tendermint-iavl v0.12.0-binance.4
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.32.3
