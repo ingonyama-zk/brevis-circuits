@@ -25,7 +25,7 @@ In addition to the standard gadgets provided by `gnark`, a powerful zk-SNARK dev
 
 ## Run using Icicle GPU acceleration
 
-Run bls-sig circuit using Ingonyama's accelerated GPU library Icicle by running the script [`setup_icicle.sh`](fabric/bls-sig/setup_icicle.sh)
+Run bls-sig circuit using Ingonyama's accelerated GPU library Icicle by running the script [`setup_icicle.sh`](./setup_icicle.sh)
 
 Please see the prerequisites required in the [Icicle repo](https://github.com/ingonyama-zk/icicle/tree/dev/goicicle#prerequisites).
 
