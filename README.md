@@ -29,4 +29,4 @@ Run bls-sig circuit using Ingonyama's accelerated GPU library Icicle by running 
 
 Please see the prerequisites required in the [Icicle repo](https://github.com/ingonyama-zk/icicle/tree/dev/goicicle#prerequisites).
 
-If you have questions or need help, find us on [discord](https://discord.gg/Y4SkbDf2Ff)
+If you have questions or need help, you can find Ingonyama on [discord](https://discord.gg/Y4SkbDf2Ff)
