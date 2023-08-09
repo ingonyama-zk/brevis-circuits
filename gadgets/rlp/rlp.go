@@ -312,14 +312,14 @@ func (a *ArrayCheck) RlpNestArrayCheck(api frontend.API, in []frontend.Variable)
 		fieldHexLen = api.Add(fieldHexLen, keptArrayPrefixLen)
 		fieldHexLens = append(fieldHexLens, fieldHexLen)
 
-		api.Println("field is valid:", fieldPrefixIsValid, "filed lenSum:", lenSum)
+		//api.Println("field is valid:", fieldPrefixIsValid, "filed lenSum:", lenSum)
 	}
 
 	lenCheck := api.IsZero(api.Sub(totalArrayHexLen, lenSum))
-	api.Println("totalArrayHexLen:", totalArrayHexLen, "lenSum:", lenSum)
+	//api.Println("totalArrayHexLen:", totalArrayHexLen, "lenSum:", lenSum)
 
 	out = api.IsZero(api.Sub(api.Add(check, lenCheck), api.Add(a.MaxFields, 2)))
-	api.Println("out:", out)
+	//api.Println("out:", out)
 
 	return
 }
@@ -437,14 +437,14 @@ func (a *ArrayCheck) RlpArrayCheck(api frontend.API, in []frontend.Variable) (
 		//  lenSum = lenSum + 2 - 2 * fieldPrefix[idx].isLiteral + fieldRlpPrefix1HexLen[idx] + fieldHexLen[idx];
 		lenSum = api.Sub(api.Add(lenSum, 2), api.Mul(2, fieldPrefixIsLiteral))
 		lenSum = api.Add(lenSum, fieldRlpPrefix1HexLen, fieldHexLen)
-		api.Println("field is valid:", fieldPrefixIsValid, "filed lenSum:", lenSum)
+		//api.Println("field is valid:", fieldPrefixIsValid, "filed lenSum:", lenSum)
 	}
 
 	lenCheck := api.IsZero(api.Sub(totalArrayHexLen, lenSum))
-	api.Println("totalArrayHexLen:", totalArrayHexLen, "lenSum:", lenSum)
+	//api.Println("totalArrayHexLen:", totalArrayHexLen, "lenSum:", lenSum)
 
 	out = api.IsZero(api.Sub(api.Add(check, lenCheck), api.Add(a.MaxFields, 2)))
-	api.Println("out:", out)
+	//api.Println("out:", out)
 
 	return
 }

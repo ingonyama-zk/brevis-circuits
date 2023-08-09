@@ -9,6 +9,7 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/frontend/cs/r1cs"
+	"sync"
 )
 
 func main() {
@@ -43,12 +44,30 @@ func main() {
 		common.WriteProvingKey(pk, "test_single_number_circuit.pk")
 	}
 
+	log.Infoln("pk load done.")
+
 	witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
 
 	if err != nil {
 		log.Errorf("Receipt failed to setup for: %s\n", err.Error())
 		return
 	}
+
+	var wg sync.WaitGroup
+
+	log.Infoln("start prove")
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err = groth16.Prove(ccs, pk, witness)
+			if err != nil {
+				log.Errorf("Receipt failed to prove for: %s\n", err.Error())
+				return
+			}
+		}()
+	}
+	wg.Wait()
 
 	_, err = groth16.Prove(ccs, pk, witness)
 	if err != nil {
