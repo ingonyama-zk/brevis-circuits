@@ -38,7 +38,10 @@ func RlpFieldPrefix(api frontend.API, in [2]frontend.Variable) (frontend.Variabl
 	frontend.Variable,
 	frontend.Variable,
 	frontend.Variable,
+	frontend.Variable,
 	frontend.Variable) {
+
+	isArrayBig, arrayHexLen, isArray := RlpArrayPrefix(api, in)
 
 	// if starts with < 'c'
 	lt1 := LessThan(api, in[0], 12)
@@ -85,7 +88,12 @@ func RlpFieldPrefix(api frontend.API, in [2]frontend.Variable) (frontend.Variabl
 	isValid := api.Add(lt1, isEmptyList)
 	isValid = api.Sub(isValid, api.Mul(lt1, isEmptyList))
 
-	return isBig, isLiteral, prefixOrTotalHexLen, isValid, isEmptyList
+	prefixOrTotalHexLen = api.Add(api.Mul(isValid, prefixOrTotalHexLen), api.Mul(isArray, arrayHexLen))
+	isValid = api.Add(isValid, isArray)
+
+	isBig = api.Add(isBig, isArrayBig)
+
+	return isBig, isLiteral, prefixOrTotalHexLen, isValid, isArray, isEmptyList
 }
 
 func ShiftLeft(api frontend.API, nIn int, minShift int, maxShift int, in []frontend.Variable, shift frontend.Variable) []frontend.Variable {
@@ -189,11 +197,11 @@ type ArrayCheck struct {
 	FieldMaxHexLen       []int
 }
 
-// RlpArrayCheck rlp array length checker (1 layer data in trie), return the check result,
+// RlpNestArrayCheck decode the RLP array data and get all item, applies to the sub-item is still an RLP array
 // the total length of the array length with rlp prefix in hex,
 // array of each field hex length with rlp prefix
 // array of each decoded-field hex length.
-func (a *ArrayCheck) RlpArrayCheck(api frontend.API, in []frontend.Variable) (
+func (a *ArrayCheck) RlpNestArrayCheck(api frontend.API, in []frontend.Variable) (
 	out frontend.Variable,
 	totalRlpHexLen frontend.Variable,
 	fieldHexLens []frontend.Variable,
@@ -257,7 +265,137 @@ func (a *ArrayCheck) RlpArrayCheck(api frontend.API, in []frontend.Variable) (
 			shiftToFieldIn = append(shiftToFieldIn, shiftToFieldRlpsOuts[idx][j])
 		}
 
-		fieldPrefixIsBig, fieldPrefixIsLiteral, fieldPrefixPrefixOrTotalHexLen, fieldPrefixIsValid, _ := RlpFieldPrefix(api, [2]frontend.Variable{shiftToFieldRlpsOuts[idx][0], shiftToFieldRlpsOuts[idx][1]})
+		fieldPrefixIsBig, fieldPrefixIsLiteral, fieldPrefixPrefixOrTotalHexLen, fieldPrefixIsValid, isArrayField, _ := RlpFieldPrefix(api, [2]frontend.Variable{shiftToFieldRlpsOuts[idx][0], shiftToFieldRlpsOuts[idx][1]})
+
+		fieldRlpPrefix1HexLen := api.Mul(fieldPrefixIsBig, fieldPrefixPrefixOrTotalHexLen)
+
+		lenPrefixMaxHexs := LogCeil(a.FieldMaxHexLen[idx]) / 8
+		lenPrefixMaxHexs = (lenPrefixMaxHexs + 1) * 2
+		shlToFieldShift := api.Mul(fieldPrefixIsLiteral, api.Add(2, fieldRlpPrefix1HexLen))
+		shlToFieldShift = api.Sub(api.Add(2, fieldRlpPrefix1HexLen), shlToFieldShift)
+		keptArrayPrefixLen := api.Mul(shlToFieldShift, isArrayField) // array prefix will not be remove, so len should be added to filed hex
+		shlToFieldShift = api.Mul(shlToFieldShift, api.Sub(1, isArrayField))
+		shiftToLeftOut := ShiftLeft(api, a.MaxHexLen, 0, lenPrefixMaxHexs, shiftToFieldIn, shlToFieldShift)
+
+		shiftToFieldOuts = append(shiftToFieldOuts, make([]frontend.Variable, len(shiftToLeftOut)))
+		shiftToFieldOuts[idx] = shiftToLeftOut
+
+		fields = append(fields, make([]frontend.Variable, a.MaxHexLen))
+		for j := 0; j < a.MaxHexLen; j++ {
+			fields[idx][j] = shiftToLeftOut[j]
+		}
+
+		fieldHexLenMultiSelc := api.Mul(fieldPrefixIsBig, api.Sub(fieldRlpPrefix1HexLen, 1))
+
+		var fieldHexLenMultiIn [][]frontend.Variable
+
+		var tmp = frontend.Variable(0)
+		fieldHexLenMultiIn = append(fieldHexLenMultiIn, make([]frontend.Variable, lenPrefixMaxHexs))
+		for j := 0; j < lenPrefixMaxHexs; j++ {
+			tmp = api.Add(api.Mul(16, tmp), shiftToFieldRlpsOuts[idx][2+j])
+			fieldHexLenMultiIn[0][j] = tmp
+		}
+		fieldHexLenMultiOut := Multiplexer(api, fieldHexLenMultiSelc, 1, lenPrefixMaxHexs, fieldHexLenMultiIn)
+
+		temp2 := api.Sub(api.Mul(fieldHexLenMultiOut[0], 2), fieldPrefixPrefixOrTotalHexLen)
+		fieldTemp := api.Add(fieldPrefixPrefixOrTotalHexLen, api.Mul(fieldPrefixIsBig, temp2))
+
+		fieldHexLen := api.Add(fieldTemp, api.Mul(2, fieldPrefixIsLiteral))
+		fieldHexLen = api.Sub(fieldHexLen, api.Mul(fieldTemp, fieldPrefixIsLiteral))
+
+		check = api.Add(check, fieldPrefixIsValid)
+
+		//  lenSum = lenSum + 2 - 2 * fieldPrefix[idx].isLiteral + fieldRlpPrefix1HexLen[idx] + fieldHexLen[idx];
+		lenSum = api.Sub(api.Add(lenSum, 2), api.Mul(2, fieldPrefixIsLiteral))
+		lenSum = api.Add(lenSum, fieldRlpPrefix1HexLen, fieldHexLen)
+
+		fieldHexLen = api.Add(fieldHexLen, keptArrayPrefixLen)
+		fieldHexLens = append(fieldHexLens, fieldHexLen)
+
+		api.Println("field is valid:", fieldPrefixIsValid, "filed lenSum:", lenSum)
+	}
+
+	lenCheck := api.IsZero(api.Sub(totalArrayHexLen, lenSum))
+	api.Println("totalArrayHexLen:", totalArrayHexLen, "lenSum:", lenSum)
+
+	out = api.IsZero(api.Sub(api.Add(check, lenCheck), api.Add(a.MaxFields, 2)))
+	api.Println("out:", out)
+
+	return
+}
+
+// RlpArrayCheck rlp array length checker (1 layer data in trie), return the check result,
+// the total length of the array length with rlp prefix in hex,
+// array of each field hex length with rlp prefix
+// array of each decoded-field hex length.
+func (a *ArrayCheck) RlpArrayCheck(api frontend.API, in []frontend.Variable) (
+	out frontend.Variable,
+	totalRlpHexLen frontend.Variable,
+	fieldHexLens []frontend.Variable,
+	fields [][]frontend.Variable) {
+
+	isBig, prefixOrTotalHexLen, isValid := RlpArrayPrefix(api, [2]frontend.Variable{in[0], in[1]})
+
+	check := isValid
+
+	lenSum := frontend.Variable(0)
+
+	var temp = frontend.Variable(0)
+	var totalArrayIn [][]frontend.Variable
+	for idx := 0; idx < a.ArrayPrefixMaxHexLen; idx++ {
+		temp = api.Add(api.Mul(16, temp), in[2+idx])
+		if len(totalArrayIn) <= idx {
+			totalArrayIn = append(totalArrayIn, make([]frontend.Variable, a.ArrayPrefixMaxHexLen))
+		}
+		totalArrayIn[0][idx] = temp
+	}
+
+	arrayRlpPrefix1HexLen := api.Mul(isBig, prefixOrTotalHexLen)
+
+	// when isBig, the arrayRlpPrefix1HexLen = 2. if <55byte, arrayRlpPrefix1HexLen not exits
+	sel := api.Mul(isBig, api.Sub(arrayRlpPrefix1HexLen, 1))
+	totalArrayOut := Multiplexer(api, sel, 1, a.ArrayPrefixMaxHexLen, totalArrayIn)
+
+	//	totalArrayHexLen = rlpArrayPrefix.prefixOrTotalHexLen + rlpArrayPrefix.isBig * (2 * totalArray.out[0] - rlpArrayPrefix.prefixOrTotalHexLen);
+	totalArrayHexLen := api.Sub(api.Mul(2, totalArrayOut[0]), prefixOrTotalHexLen)
+	totalArrayHexLen = api.Add(prefixOrTotalHexLen, api.Mul(isBig, totalArrayHexLen))
+
+	totalRlpHexLen = api.Add(2, arrayRlpPrefix1HexLen, totalArrayHexLen)
+
+	//shiftToField[nFields]
+	var shiftToFieldOuts [][]frontend.Variable
+	var shiftToFieldRlpsOuts [][]frontend.Variable
+
+	for idx := 0; idx < a.MaxFields; idx++ {
+
+		if idx == 0 {
+			var shiftToFieldRlpsIn []frontend.Variable
+
+			for j := 0; j < a.MaxHexLen; j++ {
+				shiftToFieldRlpsIn = append(shiftToFieldRlpsIn, in[j])
+			}
+
+			arrayPrefixLen := api.Add(2, arrayRlpPrefix1HexLen)
+			shlOut := ShiftLeft(api, a.MaxHexLen, 0, 10, shiftToFieldRlpsIn, arrayPrefixLen)
+			shiftToFieldRlpsOuts = append(shiftToFieldRlpsOuts, make([]frontend.Variable, len(shlOut)))
+			shiftToFieldRlpsOuts[idx] = shlOut
+		} else {
+			var shiftToFieldRlpsIn []frontend.Variable
+			for j := 0; j < a.MaxHexLen; j++ {
+				shiftToFieldRlpsIn = append(shiftToFieldRlpsIn, shiftToFieldOuts[idx-1][j])
+			}
+			shlOut := ShiftLeft(api, a.MaxHexLen, a.FieldMinHexLen[idx-1], a.FieldMaxHexLen[idx-1], shiftToFieldRlpsIn, fieldHexLens[idx-1])
+			//shlOut := ShiftLeft(api, a.MaxHexLen, a.FieldMinHexLen[idx-1], a.FieldMaxHexLen[idx-1], shiftToFieldRlpsIn, lenSum)
+			shiftToFieldRlpsOuts = append(shiftToFieldRlpsOuts, make([]frontend.Variable, len(shlOut)))
+			shiftToFieldRlpsOuts[idx] = shlOut
+		}
+
+		var shiftToFieldIn []frontend.Variable
+		for j := 0; j < a.MaxHexLen; j++ {
+			shiftToFieldIn = append(shiftToFieldIn, shiftToFieldRlpsOuts[idx][j])
+		}
+
+		fieldPrefixIsBig, fieldPrefixIsLiteral, fieldPrefixPrefixOrTotalHexLen, fieldPrefixIsValid, _, _ := RlpFieldPrefix(api, [2]frontend.Variable{shiftToFieldRlpsOuts[idx][0], shiftToFieldRlpsOuts[idx][1]})
 
 		fieldRlpPrefix1HexLen := api.Mul(fieldPrefixIsBig, fieldPrefixPrefixOrTotalHexLen)
 
@@ -299,11 +437,14 @@ func (a *ArrayCheck) RlpArrayCheck(api frontend.API, in []frontend.Variable) (
 		//  lenSum = lenSum + 2 - 2 * fieldPrefix[idx].isLiteral + fieldRlpPrefix1HexLen[idx] + fieldHexLen[idx];
 		lenSum = api.Sub(api.Add(lenSum, 2), api.Mul(2, fieldPrefixIsLiteral))
 		lenSum = api.Add(lenSum, fieldRlpPrefix1HexLen, fieldHexLen)
+		api.Println("field is valid:", fieldPrefixIsValid, "filed lenSum:", lenSum)
 	}
 
 	lenCheck := api.IsZero(api.Sub(totalArrayHexLen, lenSum))
+	api.Println("totalArrayHexLen:", totalArrayHexLen, "lenSum:", lenSum)
 
 	out = api.IsZero(api.Sub(api.Add(check, lenCheck), api.Add(a.MaxFields, 2)))
+	api.Println("out:", out)
 
 	return
 }
@@ -376,7 +517,7 @@ func (a *ArrayCheck) BlkHeaderRlpCheck(api frontend.API, in []frontend.Variable,
 			shiftToFieldIn = append(shiftToFieldIn, shiftToFieldRlpsOuts[idx][j])
 		}
 
-		fieldPrefixIsBig, fieldPrefixIsLiteral, fieldPrefixPrefixOrTotalHexLen, fieldPrefixIsValid, _ := RlpFieldPrefix(api, [2]frontend.Variable{shiftToFieldRlpsOuts[idx][0], shiftToFieldRlpsOuts[idx][1]})
+		fieldPrefixIsBig, fieldPrefixIsLiteral, fieldPrefixPrefixOrTotalHexLen, fieldPrefixIsValid, _, _ := RlpFieldPrefix(api, [2]frontend.Variable{shiftToFieldRlpsOuts[idx][0], shiftToFieldRlpsOuts[idx][1]})
 
 		fieldRlpPrefix1HexLen := api.Mul(fieldPrefixIsBig, fieldPrefixPrefixOrTotalHexLen)
 

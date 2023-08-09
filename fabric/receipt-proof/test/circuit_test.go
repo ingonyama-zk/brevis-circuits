@@ -59,7 +59,7 @@ func TestReceiptCircuit(t *testing.T) {
 
 	transactionHash := "0xcde39c41dce4a10417e5a268ae5cc608816547650b413a1ac182971f02399443"
 
-	witness, err := util.GenerateReceiptCircuitProofWitness("https://ethereum.blockpi.network/v1/rpc/public", transactionHash)
+	witness, _, err := util.GenerateReceiptCircuitProofWitness("https://ethereum.blockpi.network/v1/rpc/public", transactionHash)
 	assert.NoError(err)
 
 	err = test.IsSolved(&core.ReceiptProofCircuit{}, witness, ecc.BN254.ScalarField())

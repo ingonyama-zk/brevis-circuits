@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
+	"github.com/celer-network/brevis-circuits/common/proof"
+	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 	"strconv"
 	"strings"
 
@@ -105,27 +109,34 @@ func GenerateReceiptMPTProof(rpcUrl, transactionHash string) (*ReceiptProofData,
 	}, nil
 }
 
-func GenerateReceiptCircuitProofWitness(rpcUrl, transactionHash string) (*core.ReceiptProofCircuit, error) {
+type PublicInputs struct {
+	LeafHash    []byte
+	BlockHash   []byte
+	BlockNumber uint64
+	BlockTime   uint64
+}
+
+func GenerateReceiptCircuitProofWitness(rpcUrl, transactionHash string) (*core.ReceiptProofCircuit, *PublicInputs, error) {
 
 	receiptProofData, err := GenerateReceiptMPTProof(rpcUrl, transactionHash)
 
 	if err != nil {
 		log.Errorf("Failed to generate receipt circuit witness %s: %s\n", transactionHash, err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 
 	depth := len(receiptProofData.MPTProofs)
 
 	if depth < 2 {
 		log.Errorf("Failed to generate receipt circuit witness %s (Wrong mpt proofs) : %v\n", transactionHash, receiptProofData.MPTProofs)
-		return nil, err
+		return nil, nil, err
 	}
 
 	mptProof0Bytes, err := hexutil.Decode(receiptProofData.MPTProofs[0])
 
 	if err != nil {
 		log.Errorf("Failed to decode mpt proof0 %s: %s", transactionHash, err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 
 	rootHashHexString := strings.ReplaceAll(hexutil.Encode(keccak256.Hash(mptProof0Bytes)), "0x", "")
@@ -166,7 +177,7 @@ func GenerateReceiptCircuitProofWitness(rpcUrl, transactionHash string) (*core.R
 
 	if err != nil {
 		log.Errorf("Failed to decode mpt leaf %s: %s", transactionHash, err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 
 	var leafDecodedValue [][]byte
@@ -174,8 +185,10 @@ func GenerateReceiptCircuitProofWitness(rpcUrl, transactionHash string) (*core.R
 
 	if err != nil {
 		log.Errorf("Failed to rlp-decode mpt leaf %s: %s", transactionHash, err.Error())
-		return nil, err
+		return nil, nil, err
 	}
+
+	var publicInputs PublicInputs
 
 	leafHashHexString := hexutil.Encode(keccak256.Hash(leafBytes))
 	leafHashBytes := hexutil.MustDecode(leafHashHexString)
@@ -246,6 +259,11 @@ func GenerateReceiptCircuitProofWitness(rpcUrl, transactionHash string) (*core.R
 		blockHashRlpFV[i] = 0
 	}
 
+	publicInputs.LeafHash = leafHashBytes
+	publicInputs.BlockHash = blockHashBytes
+	publicInputs.BlockNumber = receiptProofData.BlockNumber
+	publicInputs.BlockTime = receiptProofData.BlockTime
+
 	return &core.ReceiptProofCircuit{
 		LeafHash:             leafHashFV,
 		BlockHash:            blockHashFV,
@@ -264,7 +282,7 @@ func GenerateReceiptCircuitProofWitness(rpcUrl, transactionHash string) (*core.R
 		BlockHashRlp:    blockHashRlpFV,
 		BlockFieldsNum:  receiptProofData.BlockFieldsNum,
 		BlockRoundIndex: blockRoundIndex,
-	}, nil
+	}, &publicInputs, nil
 }
 
 func GetRlpPathPrefixLength(nodeRlp string) (nodeType int, pathPrefixLength int) {
@@ -299,5 +317,139 @@ func GetRlpPathPrefixLength(nodeRlp string) (nodeType int, pathPrefixLength int)
 
 	nodeType = 0
 	pathPrefixLength = 0
+	return
+}
+
+type ReceiptSingleNumSumCircuitPublicInputs struct {
+	SmtRoot uint64
+	Volume  uint64
+	From    string
+}
+
+func GenerateReceiptSingleNumSumCircuitProofWitness(rpcUrl, smtRoot, txHash, contractAddr, fromAddr, topic string, vol uint64) (*core.SingleNumSumCircuit, *ReceiptSingleNumSumCircuitPublicInputs, error) {
+	ec, err := ethclient.Dial(rpcUrl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	receipt, err := ec.TransactionReceipt(context.Background(), bccommon.Hex2Hash(txHash))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	raw, err := proof.GetReceiptRaw(receipt)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// only process new type
+	if raw[0] != 2 {
+		log.Fatalln()
+	}
+
+	bk, err := ec.BlockByNumber(context.Background(), receipt.BlockNumber) // 21 transactions, with ext nodes
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var receipts types.Receipts
+	for _, tx := range bk.Transactions() {
+		rec, err := ec.TransactionReceipt(context.Background(), tx.Hash())
+		if err != nil {
+			log.Fatalln(err)
+		}
+		receipts = append(receipts, rec)
+	}
+	receiptMPTProof, _, _, err := proof.GetReceiptProof(bk, receipts, int(receipt.TransactionIndex))
+
+	var receiptRlpHexLen frontend.Variable
+	var receiptRlp [784]frontend.Variable
+	var receiptLeafValueRlp [800]frontend.Variable
+
+	copy(receiptRlp[:], GetHexArray(fmt.Sprintf("%x", raw[1:]), 784))
+	copy(receiptLeafValueRlp[:], GetHexArray(fmt.Sprintf("%x", receiptMPTProof[len(receiptMPTProof)-1]), 800))
+	receiptRlpHexLen = 784
+
+	smtRootBytes, _ := hexutil.Decode(smtRoot)
+
+	leafValue := receiptMPTProof[len(receiptMPTProof)-1]
+	leafHash := crypto.Keccak256(receiptMPTProof[len(receiptMPTProof)-1])
+
+	log.Infof("leafValue: %x", leafValue)
+	log.Infof("leafHash: %x", leafHash)
+
+	var leafHashPiece [2]frontend.Variable
+	leafHashPiece[0] = leafHash[0:16]
+	leafHashPiece[1] = leafHash[16:32]
+
+	var leafValueHex [800]frontend.Variable
+	copy(leafValueHex[:], GetHexArray(fmt.Sprintf("%x", leafValue), 800))
+
+	paddedBytes := keccak.Pad101Bytes(leafValue)
+
+	var paddedLeafRlpHex [272 * 3]frontend.Variable
+	for i, b := range paddedBytes {
+		n1 := b >> 4
+		n2 := b & 0x0F
+
+		paddedLeafRlpHex[i*2] = n1
+		paddedLeafRlpHex[i*2+1] = n2
+	}
+
+	for i := len(paddedBytes) * 2; i < 272*3; i++ {
+		paddedLeafRlpHex[i] = 0
+	}
+
+	// mpt data
+	oldWitness, _, err := GenerateReceiptCircuitProofWitness(rpcUrl, txHash)
+
+	newPublicInputs := &ReceiptSingleNumSumCircuitPublicInputs{
+		Volume:  vol,
+		SmtRoot: 1,
+		From:    fromAddr,
+	}
+
+	witness := &core.SingleNumSumCircuit{
+		SmtRoot: smtRootBytes,
+		//
+		LeafHash: leafHashPiece,
+
+		Key:                  oldWitness.Key,
+		KeyLength:            oldWitness.KeyLength,
+		RootHash:             oldWitness.RootHash,
+		KeyFragmentStarts:    oldWitness.KeyFragmentStarts,
+		NodeRlp:              oldWitness.NodeRlp,
+		NodePathPrefixLength: oldWitness.NodePathPrefixLength,
+		NodeTypes:            oldWitness.NodeTypes,
+		NodeRlpRoundIndexes:  oldWitness.NodeRlpRoundIndexes,
+		Depth:                oldWitness.Depth,
+
+		BlockHashRlp:    oldWitness.BlockHashRlp,
+		BlockFieldsNum:  oldWitness.BlockFieldsNum,
+		BlockRoundIndex: oldWitness.BlockRoundIndex,
+
+		LeafValue:       leafValueHex,
+		LeafValuePadded: paddedLeafRlpHex,
+
+		Volume:           vol,
+		From:             new(big.Int).SetBytes(bccommon.Hex2Bytes(fromAddr)),
+		ReceiptRlpHexLen: receiptRlpHexLen,
+		ReceiptRlp:       receiptRlp,
+
+		LogIndex: 0,
+	}
+
+	return witness, newPublicInputs, nil
+}
+
+func GetHexArray(hexStr string, maxLen int) (res []frontend.Variable) {
+	for i := 0; i < maxLen; i++ {
+		if i < len(hexStr) {
+			intValue, _ := strconv.ParseInt(string(hexStr[i]), 16, 64)
+			res = append(res, intValue)
+		} else {
+			res = append(res, 0)
+		}
+	}
 	return
 }
