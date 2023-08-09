@@ -68,10 +68,13 @@ func main() {
 	}
 	wg.Wait()*/
 
-	_, err = groth16.Prove(ccs, pk, witness)
-	if err != nil {
-		log.Errorf("Receipt failed to prove for: %s\n", err.Error())
-		return
+	for i := 0; i < 100; i++ {
+		log.Infof("bench num: %d", i)
+		_, err = groth16.Prove(ccs, pk, witness)
+		if err != nil {
+			log.Errorf("Receipt failed to prove for: %s\n", err.Error())
+			return
+		}
 	}
 
 	log.Infoln("finish prove")
