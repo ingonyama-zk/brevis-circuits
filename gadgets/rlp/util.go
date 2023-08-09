@@ -3,7 +3,6 @@ package rlp
 import (
 	"github.com/celer-network/brevis-circuits/gadgets/keccak"
 
-	"github.com/celer-network/goutils/log"
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -254,7 +253,7 @@ func (subArray *SubArray) SubArray(api frontend.API, in []frontend.Variable, fro
 		output = append(output, shifts[i][subArray.nInBits-1])
 	}
 
-	log.Info(output)
+	//log.Info(output)
 	return output, outLength
 
 	// // barrel shifter
