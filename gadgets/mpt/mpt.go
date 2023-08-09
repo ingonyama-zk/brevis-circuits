@@ -17,9 +17,9 @@ func CheckMPTInclusionFixedKeyLength(
 	maxDepth int,
 	keyLength int,
 	maxValueLength int,
-	key []frontend.Variable,               // [keyLength]
-	value []frontend.Variable,             // [maxValueLength]
-	rootHash [64]frontend.Variable,        // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
+	key []frontend.Variable, // [keyLength]
+	value []frontend.Variable, // [maxValueLength]
+	rootHash [64]frontend.Variable, // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
 	keyFragmentStarts []frontend.Variable, // [maxDepth]
 	leafRlp []frontend.Variable,
 	leafRoundIndex frontend.Variable,
@@ -27,7 +27,7 @@ func CheckMPTInclusionFixedKeyLength(
 	nodeRlp [][]frontend.Variable, // [maxDepth - 1][maxBranchRlpHexLen]
 	nodeRoundIndexes []frontend.Variable,
 	nodePathPrefixLength []frontend.Variable, // [maxDepth - 1]
-	nodeTypes []frontend.Variable,            // [maxDepth - 1]
+	nodeTypes []frontend.Variable, // [maxDepth - 1]
 	depth frontend.Variable,
 ) CheckMPTInclusionFixedKeyLengthResult {
 	api.AssertIsLessOrEqual(maxDepth, 10)
@@ -242,13 +242,13 @@ func CheckMPTInclusionNoBranchTermination(
 	maxKeyHexLen int,
 	key []frontend.Variable, // [keyLength]
 	keyLength frontend.Variable,
-	rootHash [64]frontend.Variable,        // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
+	rootHash [64]frontend.Variable, // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
 	keyFragmentStarts []frontend.Variable, // [maxDepth]
 	publicLeafHash [2]frontend.Variable,
 	nodeRlp [][]frontend.Variable, // [maxDepth - 1][maxBranchRlpHexLen]
 	nodeRoundIndexes []frontend.Variable,
 	nodePathPrefixLength []frontend.Variable, // [maxDepth - 1]
-	nodeTypes []frontend.Variable,            // [maxDepth - 1]
+	nodeTypes []frontend.Variable, // [maxDepth - 1]
 	depth frontend.Variable,
 ) CheckMPTInclusionFixedKeyLengthResult {
 	api.AssertIsLessOrEqual(maxDepth, 10)
@@ -293,7 +293,7 @@ func CheckMPTInclusionNoBranchTermination(
 		}
 		leafStartInput[0] = append(leafStartInput[0], keyFragmentStarts[i])
 	}
-	leafStartMultiplexer := rlp.Multiplexer(api, api.Sub(depth, 1), 1, maxDepth, leafStartInput)
+	/*leafStartMultiplexer := */ rlp.Multiplexer(api, api.Sub(depth, 1), 1, maxDepth, leafStartInput)
 
 	var leafSubArrayInput [6]frontend.Variable
 	for i := 0; i < 6; i++ {
