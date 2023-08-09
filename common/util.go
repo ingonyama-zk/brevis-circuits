@@ -44,6 +44,17 @@ func WriteVerifyingKey(vk groth16.VerifyingKey, filename string) {
 	}
 }
 
+func ReadProvingKey(filename string, pk groth16.ProvingKey) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = pk.UnsafeReadFrom(f)
+	return err
+}
+
 func WriteProvingKey(pk groth16.ProvingKey, filename string) {
 	f, err := os.Create(filename)
 	if err != nil {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/celer-network/brevis-circuits/common"
 	"github.com/celer-network/brevis-circuits/fabric/receipt-proof/core"
 	"github.com/celer-network/brevis-circuits/fabric/receipt-proof/util"
 	"github.com/celer-network/goutils/log"
@@ -30,13 +31,16 @@ func main() {
 		return
 	}
 
-	log.Info("Start to write ccs")
-
-	log.Info("Start to setup pk vk")
-
-	pk, _, err := groth16.Setup(ccs)
+	log.Info("Start to setup pk")
+	var pk = groth16.NewProvingKey(ecc.BN254)
+	err = common.ReadProvingKey("test_single_number_circuit.pk", pk)
 	if err != nil {
-		log.Fatalln(err)
+		log.Warnf("Failed to read pk %s, and try create", err.Error())
+		pk, _, err = groth16.Setup(ccs)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		common.WriteProvingKey(pk, "test_single_number_circuit.pk")
 	}
 
 	witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
