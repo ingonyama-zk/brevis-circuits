@@ -9,6 +9,7 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/frontend/cs/r1cs"
+	"sync"
 )
 
 func main() {
@@ -53,29 +54,32 @@ func main() {
 	}
 
 	// for bench
-	/*var wg sync.WaitGroup
+	var wg sync.WaitGroup
 	log.Infoln("start prove")
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 5; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, err = groth16.Prove(ccs, pk, witness)
-			if err != nil {
-				log.Errorf("Receipt failed to prove for: %s\n", err.Error())
-				return
+			for x := 0; x < 100; x++ {
+				_, err = groth16.Prove(ccs, pk, witness)
+				if err != nil {
+					log.Errorf("Receipt failed to prove for: %s\n", err.Error())
+					return
+				}
 			}
 		}()
 	}
-	wg.Wait()*/
+	wg.Wait()
 
-	for i := 0; i < 100; i++ {
+	// for seq test
+	/*for i := 0; i < 100; i++ {
 		log.Infof("bench num: %d", i)
 		_, err = groth16.Prove(ccs, pk, witness)
 		if err != nil {
 			log.Errorf("Receipt failed to prove for: %s\n", err.Error())
 			return
 		}
-	}
+	}*/
 
 	log.Infoln("finish prove")
 }
