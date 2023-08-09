@@ -52,8 +52,8 @@ func (c *SingleNumSumCircuit) Define(api frontend.API) error {
 	roundIndex := 800 / 272
 	leafHashResult := *rlp.Keccak256AsNibbles(api, 4, nibbles, roundIndex)
 
-	log.Info("LeafHashResult", leafHashResult.Output)
-	log.Info("Leaf Hash C", c.LeafHash)
+	//log.Info("LeafHashResult", leafHashResult.Output)
+	//log.Info("Leaf Hash C", c.LeafHash)
 
 	// c59b9d0e4d42a451e1c673bbdd24b84e
 	// eb5947b165409c781b5cb297e73cedf5
@@ -112,7 +112,7 @@ func (c *SingleNumSumCircuit) Define(api frontend.API) error {
 	}
 	out, _, _, leafs := arrayCheckLeafRlp.RlpNestArrayCheck(api, c.LeafValue[:])
 	api.AssertIsEqual(out, 1)
-	log.Infof("leafs len:%d", len(leafs))
+	//log.Infof("leafs len:%d", len(leafs))
 
 	api.AssertIsEqual(0, leafs[1][0])
 	api.AssertIsEqual(2, leafs[1][1])

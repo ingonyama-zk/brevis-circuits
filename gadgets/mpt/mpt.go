@@ -4,7 +4,6 @@ import (
 	"github.com/celer-network/brevis-circuits/gadgets/keccak"
 	"github.com/celer-network/brevis-circuits/gadgets/rlp"
 
-	"github.com/celer-network/goutils/log"
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -18,9 +17,9 @@ func CheckMPTInclusionFixedKeyLength(
 	maxDepth int,
 	keyLength int,
 	maxValueLength int,
-	key []frontend.Variable, // [keyLength]
-	value []frontend.Variable, // [maxValueLength]
-	rootHash [64]frontend.Variable, // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
+	key []frontend.Variable,               // [keyLength]
+	value []frontend.Variable,             // [maxValueLength]
+	rootHash [64]frontend.Variable,        // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
 	keyFragmentStarts []frontend.Variable, // [maxDepth]
 	leafRlp []frontend.Variable,
 	leafRoundIndex frontend.Variable,
@@ -28,7 +27,7 @@ func CheckMPTInclusionFixedKeyLength(
 	nodeRlp [][]frontend.Variable, // [maxDepth - 1][maxBranchRlpHexLen]
 	nodeRoundIndexes []frontend.Variable,
 	nodePathPrefixLength []frontend.Variable, // [maxDepth - 1]
-	nodeTypes []frontend.Variable, // [maxDepth - 1]
+	nodeTypes []frontend.Variable,            // [maxDepth - 1]
 	depth frontend.Variable,
 ) CheckMPTInclusionFixedKeyLengthResult {
 	api.AssertIsLessOrEqual(maxDepth, 10)
@@ -84,7 +83,7 @@ func CheckMPTInclusionFixedKeyLength(
 		leafSubArrayInput[i] = key[i]
 	}
 
-	log.Info(leafSubArrayInput, leafStartMultiplexer[0], keyLength)
+	//log.Info(leafSubArrayInput, leafStartMultiplexer[0], keyLength)
 
 	subArray := rlp.NewSubArray(64, 64, 7)
 	leafSelector, leafSelectorLength := subArray.SubArray(api, leafSubArrayInput[:], leafStartMultiplexer[0], keyLength)
@@ -95,9 +94,9 @@ func CheckMPTInclusionFixedKeyLength(
 	leafRlpBlock := keccak.NibblesToU64Array(api, leafRlp[:])
 	leafHash := rlp.Keccak256AsNibbles(api, len(leafRlp), leafRlpBlock, leafRoundIndex)
 
-	log.Info("leafHash:", leafHash.Output)
+	//log.Info("leafHash:", leafHash.Output)
 
-	log.Info(leafHash.Output, leafHash.OutputLength)
+	//log.Info(leafHash.Output, leafHash.OutputLength)
 
 	var depthEqual []frontend.Variable
 	var depthLessThan []frontend.Variable
@@ -205,7 +204,7 @@ func CheckMPTInclusionFixedKeyLength(
 	}
 
 	rootHashCheck := rlp.ArrayEqual(api, rootHash[:], nodeHashes[0].Output[:], 64, 64)
-	log.Info(rootHashCheck, leafCheckResult.result.output, allFragmentsValid, extensionCheckResults, branchCheckResults)
+	//log.Info(rootHashCheck, leafCheckResult.result.output, allFragmentsValid, extensionCheckResults, branchCheckResults)
 
 	var allCheckMultiplexerInput [][]frontend.Variable
 	allCheckMultiplexerInput = append(allCheckMultiplexerInput, []frontend.Variable{api.Add(rootHashCheck, leafCheckResult.result.output, allFragmentsValid)})
@@ -243,13 +242,13 @@ func CheckMPTInclusionNoBranchTermination(
 	maxKeyHexLen int,
 	key []frontend.Variable, // [keyLength]
 	keyLength frontend.Variable,
-	rootHash [64]frontend.Variable, // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
+	rootHash [64]frontend.Variable,        // Root hash should be 32-bytes long value. Divide it by 4-bits ===> 0xcf78 will be [c, f, 7, 8]
 	keyFragmentStarts []frontend.Variable, // [maxDepth]
 	publicLeafHash [2]frontend.Variable,
 	nodeRlp [][]frontend.Variable, // [maxDepth - 1][maxBranchRlpHexLen]
 	nodeRoundIndexes []frontend.Variable,
 	nodePathPrefixLength []frontend.Variable, // [maxDepth - 1]
-	nodeTypes []frontend.Variable, // [maxDepth - 1]
+	nodeTypes []frontend.Variable,            // [maxDepth - 1]
 	depth frontend.Variable,
 ) CheckMPTInclusionFixedKeyLengthResult {
 	api.AssertIsLessOrEqual(maxDepth, 10)
@@ -301,7 +300,7 @@ func CheckMPTInclusionNoBranchTermination(
 		leafSubArrayInput[i] = key[i]
 	}
 
-	log.Info(leafSubArrayInput, leafStartMultiplexer[0], keyLength)
+	//log.Info(leafSubArrayInput, leafStartMultiplexer[0], keyLength)
 
 	subArray := rlp.NewSubArray(maxKeyHexLen, maxKeyHexLen, rlp.LogCeil(maxKeyHexLen))
 
@@ -415,7 +414,7 @@ func CheckMPTInclusionNoBranchTermination(
 	}
 
 	rootHashCheck := rlp.ArrayEqual(api, rootHash[:], nodeHashes[0].Output[:], 64, 64)
-	log.Info("Inclusion Check:", rootHashCheck, allFragmentsValid, extensionCheckResults, branchCheckResults)
+	//log.Info("Inclusion Check:", rootHashCheck, allFragmentsValid, extensionCheckResults, branchCheckResults)
 
 	var allCheckMultiplexerInput [][]frontend.Variable
 	allCheckMultiplexerInput = append(allCheckMultiplexerInput, []frontend.Variable{api.Add(rootHashCheck, 4, allFragmentsValid)})
