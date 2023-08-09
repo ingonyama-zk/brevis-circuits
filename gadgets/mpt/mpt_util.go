@@ -3,7 +3,6 @@ package mpt
 import (
 	"github.com/celer-network/brevis-circuits/gadgets/rlp"
 
-	"github.com/celer-network/goutils/log"
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -55,7 +54,7 @@ func (leafCheck *MPTLeafCheck) CheckLeaf(
 	leafRlp []frontend.Variable,
 	leafPathPrefixLength frontend.Variable,
 ) MPTLeafCheckResult {
-	log.Info("Leaf check params: ", leafCheck.maxKeyLength, leafCheck.maxRLPArrayPrefixLength, leafCheck.maxRLPLength, leafCheck.maxValueLength, keyNibbleLen, keyNibbles, values, leafRlp, leafPathPrefixLength)
+	//log.Info("Leaf check params: ", leafCheck.maxKeyLength, leafCheck.maxRLPArrayPrefixLength, leafCheck.maxRLPLength, leafCheck.maxValueLength, keyNibbleLen, keyNibbles, values, leafRlp, leafPathPrefixLength)
 
 	api.AssertIsEqual(len(keyNibbles), leafCheck.maxKeyLength)
 	api.AssertIsEqual(len(values), leafCheck.maxValueLength)
@@ -88,7 +87,7 @@ func (leafCheck *MPTLeafCheck) CheckLeaf(
 
 	valueMatched := rlp.ArrayEqual(api, values, fields[1], leafCheck.maxValueLength, fieldsLength[1])
 
-	log.Info("Leaf check result: ", rlpout, prefixCheck, keyPass, valueMatched)
+	//log.Info("Leaf check result: ", rlpout, prefixCheck, keyPass, valueMatched)
 
 	return MPTLeafCheckResult{
 		result: MPTCheckResult{
@@ -126,17 +125,17 @@ func (extensionCheck *MPTExtensionCheck) CheckExtension(
 	nodePathPrefixLength frontend.Variable,
 ) MPTCheckResult {
 
-	log.Info("extension check params: ",
-		extensionCheck.maxKeyLength,
-		extensionCheck.maxNodeRefLength,
-		extensionCheck.maxRLPArrayPrefixLength,
-		extensionCheck.maxRLPLength,
-		keyNibbleLen,
-		keyNibbles,
-		nodeRefLength,
-		nodeRefs,
-		nodeRlp,
-		nodePathPrefixLength)
+	/*log.Info("extension check params: ",
+	extensionCheck.maxKeyLength,
+	extensionCheck.maxNodeRefLength,
+	extensionCheck.maxRLPArrayPrefixLength,
+	extensionCheck.maxRLPLength,
+	keyNibbleLen,
+	keyNibbles,
+	nodeRefLength,
+	nodeRefs,
+	nodeRlp,
+	nodePathPrefixLength)*/
 
 	arrayCheck := &rlp.ArrayCheck{}
 	arrayCheck.MaxHexLen = extensionCheck.maxRLPLength
@@ -147,9 +146,9 @@ func (extensionCheck *MPTExtensionCheck) CheckExtension(
 
 	rlpout, totalRlpLength, fieldsLength, fields := arrayCheck.RlpArrayCheck(api, nodeRlp)
 
-	log.Info(rlpout, totalRlpLength, fieldsLength, fields)
+	//log.Info(rlpout, totalRlpLength, fieldsLength, fields)
 
-	log.Info("nodePathPrefixLength:", nodePathPrefixLength)
+	//log.Info("nodePathPrefixLength:", nodePathPrefixLength)
 
 	/// Extension
 	/// If odd --> rlpFields[0][0] = 1
@@ -163,11 +162,11 @@ func (extensionCheck *MPTExtensionCheck) CheckExtension(
 
 	prefixCheck := api.Add(api.Mul(oddLengthPrefix, oddPath), api.Mul(evenLengthPrefix, firstPrefixForEven, secondPrefixForEven))
 
-	log.Info(prefixCheck)
+	//log.Info(prefixCheck)
 
 	keyNibblesFromRLP := rlp.ShiftLeft(api, extensionCheck.maxRLPLength, 0, 2, fields[0], nodePathPrefixLength)
 
-	log.Info(keyNibblesFromRLP)
+	//log.Info(keyNibblesFromRLP)
 
 	keyNibblesMatched := rlp.ArrayEqual(api, keyNibbles, keyNibblesFromRLP, extensionCheck.maxKeyLength, api.Sub(fieldsLength[0], nodePathPrefixLength))
 	keyNibblesLengthMatched := rlp.Equal(api, keyNibbleLen, api.Sub(fieldsLength[0], nodePathPrefixLength))
@@ -176,12 +175,12 @@ func (extensionCheck *MPTExtensionCheck) CheckExtension(
 	nodeRefMatched := rlp.ArrayEqual(api, nodeRefs, fields[1], extensionCheck.maxNodeRefLength, fieldsLength[1])
 	nodeRefLengthMatched := rlp.Equal(api, nodeRefLength, fieldsLength[1])
 
-	log.Info(nodeRefs, fields[1], extensionCheck.maxNodeRefLength, fieldsLength[1], nodeRefMatched)
-	log.Info(nodeRefLength, fieldsLength[1], nodeRefLengthMatched)
+	//log.Info(nodeRefs, fields[1], extensionCheck.maxNodeRefLength, fieldsLength[1], nodeRefMatched)
+	//log.Info(nodeRefLength, fieldsLength[1], nodeRefLengthMatched)
 
 	nodeRefPass := api.Mul(nodeRefMatched, nodeRefLengthMatched)
 
-	log.Info("Extension check result: ", rlpout, prefixCheck, keyPass, nodeRefPass)
+	//log.Info("Extension check result: ", rlpout, prefixCheck, keyPass, nodeRefPass)
 	return MPTCheckResult{
 		output:         api.Add(rlpout, prefixCheck, keyPass, nodeRefPass),
 		rlpTotalLength: totalRlpLength,
@@ -210,14 +209,14 @@ func (branchCheck *MPTBranchCheck) CheckBranch(
 	nodeRLP []frontend.Variable,
 ) MPTCheckResult {
 
-	log.Info("branch check params: ",
-		branchCheck.maxNodeRefLength,
-		branchCheck.maxRLPArrayPrefixLength,
-		branchCheck.maxRLPLength,
-		keyNibble,
-		nodeRefLength,
-		nodeRefs,
-		nodeRLP)
+	/*log.Info("branch check params: ",
+	branchCheck.maxNodeRefLength,
+	branchCheck.maxRLPArrayPrefixLength,
+	branchCheck.maxRLPLength,
+	keyNibble,
+	nodeRefLength,
+	nodeRefs,
+	nodeRLP)*/
 
 	arrayCheck := &rlp.ArrayCheck{}
 	arrayCheck.MaxHexLen = branchCheck.maxRLPLength
@@ -249,7 +248,7 @@ func (branchCheck *MPTBranchCheck) CheckBranch(
 	rlpFieldLength := rlp.Multiplexer(api, keyNibble, 1, 16, fieldsLengthMultiplexerInput)[0]
 	nodeRefLengthCheck := rlp.Equal(api, rlpFieldLength, nodeRefLength)
 
-	log.Info("Branch check result: ", rlpout, nodeRefCheck, nodeRefLengthCheck, 1)
+	//log.Info("Branch check result: ", rlpout, nodeRefCheck, nodeRefLengthCheck, 1)
 
 	return MPTCheckResult{
 		output:         api.Add(rlpout, nodeRefCheck, nodeRefLengthCheck, 1),
