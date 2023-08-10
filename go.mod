@@ -41,7 +41,7 @@ require (
 	github.com/google/pprof v0.0.0-20230309165930-d61513b1440d // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/holiman/uint256 v1.2.2-0.20230321075855-87b91420868c // indirect
-	github.com/ingonyama-zk/icicle v0.0.0 // indirect
+	github.com/ingonyama-zk/icicle v0.0.0-20230727080545-2f21ec4aa7f4 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -81,7 +81,7 @@ replace (
 	github.com/consensys/gnark-crypto => github.com/celer-network/gnark-crypto v0.0.0-20230423085214-c00cabca6125
 	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/bnc-cosmos-sdk v0.25.4-0.20221221115251-f9e69ff1b273
 	github.com/ethereum/go-ethereum v1.11.2 => github.com/ethereum/go-ethereum v1.10.18
-	github.com/ingonyama-zk/icicle => github.com/ingonyama-zk/icicle v0.0.0-20230719184412-d13143506ece
+	github.com/ingonyama-zk/icicle => github.com/ingonyama-zk/icicle v0.0.0-20230727080545-2f21ec4aa7f4
 	github.com/liyue201/gnark-circomlib => github.com/ingonyama-zk/celer-gnark-circomlib v0.0.0-20230719192407-bd9cd118fadb
 	github.com/tendermint/go-amino => github.com/tendermint/go-amino v0.14.1
 	github.com/tendermint/iavl => github.com/bnb-chain/bnc-tendermint-iavl v0.12.0-binance.4
