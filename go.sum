@@ -482,8 +482,8 @@ github.com/ingonyama-zk/celer-gnark v0.0.0-20230719185033-49f6942d2236 h1:MXqu3a
 github.com/ingonyama-zk/celer-gnark v0.0.0-20230719185033-49f6942d2236/go.mod h1:MC5KKKNG2vveuDPY5nzXR15e46MZedhpZml1te4IDZ8=
 github.com/ingonyama-zk/celer-gnark-circomlib v0.0.0-20230719192407-bd9cd118fadb h1:SeOyo/iukdLHdNmQ4sfirAlLchRkCj/zsxRLTgdoRJM=
 github.com/ingonyama-zk/celer-gnark-circomlib v0.0.0-20230719192407-bd9cd118fadb/go.mod h1:+6y/4nTZxxFr51N0oUviv0CeCNMalNpMj1PhVjWGzsk=
-github.com/ingonyama-zk/icicle v0.0.0-20230719184412-d13143506ece h1:RHCWrXIoz6iadqKcStdn0k4mDhSgOYLmyPpRM6yMNMo=
-github.com/ingonyama-zk/icicle v0.0.0-20230719184412-d13143506ece/go.mod h1:kPvbQqCrBszFYe7cqctnvXVMHzGihiQsIAr/qP3TbNo=
+github.com/ingonyama-zk/icicle v0.0.0-20230727080545-2f21ec4aa7f4 h1:rnIps6yGHbrvYCeQMMOW8dPWJ6707et2r1Ud5Olvl+4=
+github.com/ingonyama-zk/icicle v0.0.0-20230727080545-2f21ec4aa7f4/go.mod h1:kPvbQqCrBszFYe7cqctnvXVMHzGihiQsIAr/qP3TbNo=
 github.com/iris-contrib/blackfriday v2.0.0+incompatible/go.mod h1:UzZ2bDEoaSGPbkg6SAB4att1aAwTmVIx/5gCVqeyUdI=
 github.com/iris-contrib/go.uuid v2.0.0+incompatible/go.mod h1:iz2lgM/1UnEf1kP0L/+fafWORmlnuysV2EMP8MW+qe0=
 github.com/iris-contrib/httpexpect/v2 v2.3.1/go.mod h1:ICTf89VBKSD3KB0fsyyHviKF8G8hyepP0dOXJPWz3T0=

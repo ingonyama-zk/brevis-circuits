@@ -4,7 +4,7 @@ CUR_DIR=$PWD
 
 echo "Installing Go packages..."
 go mod tidy
-cd ~/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.0.0-20230719184412-d13143506ece/goicicle
+cd ~/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.0.0-20230727080545-2f21ec4aa7f4/goicicle
 chmod +x setup.sh
 
 echo "Compiling Icicle..."
