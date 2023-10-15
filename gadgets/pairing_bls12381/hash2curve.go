@@ -153,7 +153,7 @@ func GetRawLimbsBy8Uint64(api frontend.API, v [8]frontend.Variable) *emulated.El
 	if err != nil {
 		log.Fatal(err)
 	}
-	return f.ReduceWithoutConstantCheck(f.NewInternalElement(v[:], 1))
+	return f.Reduce(f.NewInternalElement(v[:], 1))
 }
 
 func MapElementToCurve2(api frontend.API, e2 E2) (x, y *E2) {

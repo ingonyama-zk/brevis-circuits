@@ -6,7 +6,7 @@ import (
 	"github.com/celer-network/brevis-circuits/gadgets/pairing_bls12381"
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/std/algebra/native/weierstrass"
+	weierstrass "github.com/consensys/gnark/std/algebra/emulated/sw_emulated"
 )
 
 var (
@@ -37,10 +37,10 @@ func (c *BlsSignatureVerifyCircuit) Define(api frontend.API) error {
 	var participantNum frontend.Variable = 0
 	aggPubKey := &G1Gen // init aggPubKey
 	for i, bit := range c.AggBits {
-		aggPubKey = curve.Select(bit, curve.Add(aggPubKey, &c.Pubkeys[i]), aggPubKey)
+		aggPubKey = curve.Select(bit, curve.AddUnified(aggPubKey, &c.Pubkeys[i]), aggPubKey)
 		participantNum = api.Select(bit, api.Add(participantNum, 1), participantNum)
 	}
-	aggPubKey = curve.Add(aggPubKey, &G1GenNeg) // sub the init aggPubKey
+	aggPubKey = curve.AddUnified(aggPubKey, &G1GenNeg) // sub the init aggPubKey
 
 	api.AssertIsEqual(c.ParticipantNum, participantNum)
 

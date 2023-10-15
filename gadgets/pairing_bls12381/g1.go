@@ -2,7 +2,7 @@ package pairing_bls12381
 
 import (
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
-	"github.com/consensys/gnark/std/algebra/native/weierstrass"
+	weierstrass "github.com/consensys/gnark/std/algebra/emulated/sw_emulated"
 	"github.com/consensys/gnark/std/math/emulated"
 )
 
