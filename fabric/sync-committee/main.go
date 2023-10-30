@@ -42,7 +42,7 @@ func main() {
 		vgs[i] = pairing_bls12381.NewG1Affine(g1s[i])
 	}
 
-	var aggPubKey bls12381.G1Affine // default not set as infinitiy
+	var aggPubKey bls12381.G1Affine // default not set as infinity
 	for i := 0; i < common.LenOfValidators; i++ {
 		aggPubKey.Add(&aggPubKey, &g1s[i])
 	}
