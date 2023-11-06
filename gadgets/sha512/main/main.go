@@ -35,7 +35,7 @@ func (circuit *sha512Circuit) Define(api frontend.API) error {
 
 func main() {
 
-	isBenchSetup := flag.Bool("benchSetup", false, "set true only benchmark the setup proccess")
+	isBenchSetup := flag.Bool("benchSetup", false, "set true only benchmark the setup process")
 	inputLen := flag.Int("inputLen", 64, "")
 	flag.Parse()
 	fmt.Println("bench setup", *isBenchSetup)

@@ -55,7 +55,7 @@ func main() {
 		signingRootVar[i] = signingRoot[i]
 	}
 
-	var aggSign bls12381.G2Affine // default not set as infinitiy
+	var aggSign bls12381.G2Affine // default not set as infinity
 	participantNum := 0
 	for i := 0; i < common.LenOfValidators; i++ {
 		if aggBits[i] == 1 {
